@@ -3,6 +3,8 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/trpc/react";
+import { ThemeProvider } from "~/components/theme-provider";
+import Floating from "~/components/floating";
 
 export const metadata: Metadata = {
   title: "itinerarium",
@@ -16,7 +18,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <TRPCReactProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <main className="bg-background relative flex h-screen grow">
+              {children}
+              <Floating />
+            </main>
+          </ThemeProvider>
+        </TRPCReactProvider>
       </body>
     </html>
   );

@@ -1,3 +1,3 @@
 export default async function Home() {
-  return <div>asdf</div>;
+  return <div className="bg-background">asdf</div>;
 }
