@@ -7,6 +7,8 @@ export default {
   dialect: "postgresql",
   dbCredentials: {
     url: env.DATABASE_URL,
+    ssl: "require",
   },
-  tablesFilter: ["itinerarium_*"],
+  // tablesFilter: ["itinerarium_*"],
+  schemaFilter: [env.DATABASE_SCHEMA],
 } satisfies Config;
