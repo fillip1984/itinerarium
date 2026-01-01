@@ -25,7 +25,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <main className="bg-background relative flex h-screen grow">
+            <main className="from-background relative flex h-screen grow bg-linear-90 to-zinc-800">
               {children}
               <Floating />
             </main>
