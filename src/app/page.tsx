@@ -75,7 +75,7 @@ const DayCard = ({ day }: { day: DayType }) => {
               }
             }}
             onMouseDown={() => handleApplyActivity(timeslot.hour)}
-            className={`flex grow select-none ${
+            className={`flex grow select-none hover:opacity-85 ${
               timeslot.hour === 0
                 ? "rounded-t-lg"
                 : timeslot.hour === 23
@@ -83,7 +83,16 @@ const DayCard = ({ day }: { day: DayType }) => {
                   : ""
             } ${timeslot.activity ? "bg-green-500" : "bg-gray-500"}`}
           >
-            {timeslot.hour} - {timeslot.activity ?? "Free"}
+            <span
+              className={`flex grow overflow-hidden ${timeslot.hour !== 0 ? "border-t" : ""} p-1 text-ellipsis whitespace-nowrap`}
+            >
+              {timeslot.hour === 0
+                ? 12
+                : timeslot.hour > 12
+                  ? timeslot.hour - 12
+                  : timeslot.hour}
+              {timeslot.hour < 12 ? "am" : "pm"} - {timeslot.activity ?? "Free"}
+            </span>
           </div>
         ))}
       </div>
