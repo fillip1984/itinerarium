@@ -357,36 +357,53 @@ const DayChart = ({ timeslots }: { timeslots: TimeslotType[] }) => {
     );
     setChartData(Object.values(activityGroups));
     console.log("Activity Groups:", activityGroups);
+
     // const chartData = Object.values(activityGroups);
     // console.log("Chart Data:", chartData);
   }, [timeslots]);
 
   // const chartData = [
-  //   { activity: "Sleep", hours: 8, fill: "var(--chart-1)" },
-  //   { activity: "Work", hours: 8, fill: "var(--chart-2)" },
-  //   { activity: "Free", hours: 4, fill: "var(--chart-3)" },
-  //   { activity: "Other", hours: 4, fill: "var(--chart-5)" },
+  //   { activity: "Sleep", hours: 8, fill: "var(--color-Sleep)" },
+  //   { activity: "Work", hours: 8, fill: "var(--color-Work)" },
+  //   { activity: "Free", hours: 4, fill: "var(--color-Free)" },
+  //   { activity: "Other", hours: 4, fill: "var(--color-Other)" },
   // ];
 
   const chartConfig = {
-    activity: {
-      label: "Activity",
+    hours: {
+      label: "Hours",
     },
-    Sleep: {
-      label: "Sleep",
-      color: "var(--chart-1)",
+    Chores: {
+      label: "Chores",
+      color: "#eb4034",
     },
-    Work: {
-      label: "Work",
-      color: "var(--chart-2)",
+    HomeRepair: {
+      label: "Home repair",
+      color: "#19ba07",
+    },
+    Running: {
+      label: "Running",
+      color: "#075ef5",
+    },
+    Sleeping: {
+      label: "Sleeping",
+      color: "#f5f107",
+    },
+    Programming: {
+      label: "Programming",
+      color: "#b907f5",
+    },
+    Leisure: {
+      label: "Leisure",
+      color: "#07e1f5",
+    },
+    Working: {
+      label: "Working",
+      color: "#f5b507",
     },
     Free: {
       label: "Free",
-      color: "var(--chart-3)",
-    },
-    Other: {
-      label: "Other",
-      color: "var(--chart-5)",
+      color: "#5c5b5a",
     },
   } satisfies ChartConfig;
 
@@ -426,10 +443,10 @@ const DayChart = ({ timeslots }: { timeslots: TimeslotType[] }) => {
 
   return (
     <Card className="flex flex-col">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Label List</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
-      </CardHeader>
+      {/* <CardHeader className="items-center pb-0"> */}
+      {/* <CardTitle>Pie Chart - Label List</CardTitle> */}
+      {/* <CardDescription>January - June 2024</CardDescription> */}
+      {/* </CardHeader> */}
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={chartConfig}
@@ -453,14 +470,14 @@ const DayChart = ({ timeslots }: { timeslots: TimeslotType[] }) => {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
+      {/* <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 leading-none font-medium">
           Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
         </div>
         <div className="text-muted-foreground leading-none">
           Showing total visitors for the last 6 months
         </div>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 };
