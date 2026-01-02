@@ -9,9 +9,9 @@
 
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import z4, { ZodError } from "zod/v4";
 
-import { auth } from "~/server/better-auth";
+import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
 /**
@@ -52,18 +52,20 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
       data: {
         ...shape.data,
         zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+          error.cause instanceof ZodError
+            ? z4.flattenError(error.cause as ZodError<Record<string, unknown>>)
+            : null,
       },
     };
   },
 });
 
-/**
- * Create a server-side caller.
- *
- * @see https://trpc.io/docs/server/server-side-calls
- */
-export const createCallerFactory = t.createCallerFactory;
+// /**
+//  * Create a server-side caller.
+//  *
+//  * @see https://trpc.io/docs/server/server-side-calls
+//  */
+// export const createCallerFactory = t.createCallerFactory;
 
 /**
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)

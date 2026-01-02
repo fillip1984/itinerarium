@@ -14,7 +14,10 @@ const globalForDb = globalThis as unknown as {
 
 const conn =
   globalForDb.conn ??
-  postgres(env.DATABASE_URL, { prepare: false, ssl: "require" });
+  postgres(env.DATABASE_URL, {
+    prepare: false,
+    ssl: env.NODE_ENV === "production" ? "require" : "prefer",
+  });
 if (env.NODE_ENV !== "production") globalForDb.conn = conn;
 
 export const db = drizzle(conn, {

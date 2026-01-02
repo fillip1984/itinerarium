@@ -1,14 +1,11 @@
-import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { day } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
-import { init } from "@paralleldrive/cuid2";
 
-const daySchema = z.object({
-  id: z.string(),
-  name: z.string().min(1),
-  order: z.number().int().min(1).max(7),
-});
+// const daySchema = z.object({
+//   id: z.string(),
+//   name: z.string().min(1),
+//   order: z.number().int().min(1).max(7),
+// });
 
 export const dayRouter = createTRPCRouter({
   // Create

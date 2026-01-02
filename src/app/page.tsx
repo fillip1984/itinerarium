@@ -1,11 +1,20 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Label } from "@radix-ui/react-label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { BsPalette } from "react-icons/bs";
-import { FaCircle, FaRegCircle } from "react-icons/fa";
+import { LabelList, Pie, PieChart } from "recharts";
+
+import type { ChartConfig } from "~/components/ui/chart";
 import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "~/components/ui/chart";
 import {
   Dialog,
   DialogClose,
@@ -29,25 +38,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { TrendingUp } from "lucide-react";
-import { LabelList, Pie, PieChart } from "recharts";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "~/components/ui/chart";
-import { time } from "node:console";
-import { set } from "zod";
+import { useTRPC } from "~/trpc/react";
 
 export type DayType = {
   name: string;
@@ -80,22 +71,39 @@ const activities: ActivityType[] = [
 const freeActivity: ActivityType = { name: "Free", color: "#5c5b5a" };
 
 export default function Home() {
-  const days = [
-    { name: "Sunday" },
-    { name: "Monday" },
-    { name: "Tuesday" },
-    { name: "Wednesday" },
-    { name: "Thursday" },
-    { name: "Friday" },
-    { name: "Saturday" },
-  ];
+  // const queryClient = useQueryClient();
+  const trpc = useTRPC();
+  const { data: days } = useQuery(trpc.day.getAll.queryOptions());
+  // const initDays = useMutation(
+  //   trpc.day.initializeDays.mutationOptions({
+  //     onSuccess: () => {
+  //       queryClient.invalidateQueries(trpc.day.pathFilter());
+  //     },
+  //   }),
+  // );
+
+  // useEffect(() => {
+  //   console.log("Days inited:", days);
+  //   // if (!isLoading && !days) {
+  //   initDays.mutate();
+  //   // }
+  // }, []);
+  // const days = [
+  //   { name: "Sunday" },
+  //   { name: "Monday" },
+  //   { name: "Tuesday" },
+  //   { name: "Wednesday" },
+  //   { name: "Thursday" },
+  //   { name: "Friday" },
+  //   { name: "Saturday" },
+  // ];
   const [selectedActivity, setSelectedActivity] =
     useState<ActivityType>(freeActivity);
   return (
     <>
       <div className="flex grow overflow-hidden">
         <div className="flex grow gap-2 overflow-y-auto p-4">
-          {days.map((day) => (
+          {days?.map((day) => (
             <DayCard
               key={day.name}
               day={day}
@@ -355,6 +363,7 @@ const DayChart = ({ timeslots }: { timeslots: TimeslotType[] }) => {
       },
       {} as Record<string, { activity: string; hours: number; fill: string }>,
     );
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setChartData(
       Object.values(activityGroups).sort((a, b) => {
         if (a.activity === "Free") return 1;
