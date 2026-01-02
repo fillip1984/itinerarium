@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // ...drizzle, <-- waiting on drizzle to update to flat config... should come with v1.0 release soon...
+  // ...drizzle, <-- waiting on drizzle to update to flat config, see: https://github.com/drizzle-team/drizzle-orm/issues/2491... should come with v1.0 release soon...
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
