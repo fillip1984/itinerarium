@@ -1,5 +1,5 @@
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { day } from "~/server/db/schema";
+import { day, reservation } from "~/server/db/schema";
 
 // const daySchema = z.object({
 //   id: z.string(),
@@ -51,13 +51,13 @@ export const dayRouter = createTRPCRouter({
   //     }),
   initializeDays: publicProcedure.mutation(async ({ ctx }) => {
     const daysOfWeek = [
-      { name: "Monday", order: 1 },
-      { name: "Tuesday", order: 2 },
-      { name: "Wednesday", order: 3 },
-      { name: "Thursday", order: 4 },
-      { name: "Friday", order: 5 },
-      { name: "Saturday", order: 6 },
-      { name: "Sunday", order: 7 },
+      { name: "Sunday", order: 0, reservations: [{}] },
+      { name: "Monday", order: 1, reservations: [] },
+      { name: "Tuesday", order: 2, reservations: [] },
+      { name: "Wednesday", order: 3, reservations: [] },
+      { name: "Thursday", order: 4, reservations: [] },
+      { name: "Friday", order: 5, reservations: [] },
+      { name: "Saturday", order: 6, reservations: [] },
     ];
     return ctx.db.insert(day).values(daysOfWeek);
   }),

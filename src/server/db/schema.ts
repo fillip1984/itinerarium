@@ -1,3 +1,5 @@
+import { relations } from "drizzle-orm";
+
 import { appSchema, baseFields } from "./db-utils";
 
 export const day = appSchema.table("day", (d) => ({
@@ -11,6 +13,15 @@ export const reservation = appSchema.table("reservation", (r) => ({
   name: r.text().notNull(),
   description: r.text(),
   color: r.varchar({ length: 7 }).notNull(),
+  dayId: r
+    .text()
+    .references(() => day.id, { onDelete: "cascade" })
+    .notNull(),
+}));
+
+// Relationships
+export const dayRelationships = relations(day, ({ many }) => ({
+  reservations: many(reservation),
 }));
 
 export * from "./auth-schema";

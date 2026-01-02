@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Label } from "@radix-ui/react-label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BsPalette } from "react-icons/bs";
 import { LabelList, Pie, PieChart } from "recharts";
 
@@ -71,32 +71,25 @@ const activities: ActivityType[] = [
 const freeActivity: ActivityType = { name: "Free", color: "#5c5b5a" };
 
 export default function Home() {
-  // const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   const trpc = useTRPC();
-  const { data: days } = useQuery(trpc.day.getAll.queryOptions());
-  // const initDays = useMutation(
-  //   trpc.day.initializeDays.mutationOptions({
-  //     onSuccess: () => {
-  //       queryClient.invalidateQueries(trpc.day.pathFilter());
-  //     },
-  //   }),
-  // );
+  const { data: days, isLoading } = useQuery(trpc.day.getAll.queryOptions());
+  const initDays = useMutation(
+    trpc.day.initializeDays.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.day.pathFilter());
+      },
+    }),
+  );
 
-  // useEffect(() => {
-  //   console.log("Days inited:", days);
-  //   // if (!isLoading && !days) {
-  //   initDays.mutate();
-  //   // }
-  // }, []);
-  // const days = [
-  //   { name: "Sunday" },
-  //   { name: "Monday" },
-  //   { name: "Tuesday" },
-  //   { name: "Wednesday" },
-  //   { name: "Thursday" },
-  //   { name: "Friday" },
-  //   { name: "Saturday" },
-  // ];
+  useEffect(() => {
+    if (!isLoading && days?.length === 0) {
+      initDays.mutate();
+    } else {
+      console.log("Days exist, no init needed");
+    }
+  }, [isLoading]);
+
   const [selectedActivity, setSelectedActivity] =
     useState<ActivityType>(freeActivity);
   return (
