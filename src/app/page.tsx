@@ -2,7 +2,7 @@
 
 import { Label } from "@radix-ui/react-label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BsPalette } from "react-icons/bs";
 import { FaCircle, FaRegCircle } from "react-icons/fa";
 import { Button } from "~/components/ui/button";
@@ -46,6 +46,8 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "~/components/ui/chart";
+import { time } from "node:console";
+import { set } from "zod";
 
 export type DayType = {
   name: string;
@@ -332,41 +334,95 @@ const ActivitySelector = ({
 };
 
 const DayChart = ({ timeslots }: { timeslots: TimeslotType[] }) => {
-  const description = "A pie chart with a label list";
+  const [chartData, setChartData] = useState<
+    { activity: string; hours: number; fill: string }[]
+  >([]);
 
-  const chartData = [
-    { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-    { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-    { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-    { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-    { browser: "other", visitors: 90, fill: "var(--color-other)" },
-  ];
+  useEffect(() => {
+    // console.log("Timeslots updated:", timeslots);
+    const activityGroups = timeslots.reduce(
+      (acc, ts) => {
+        const activityName = ts.activity?.name ?? "Free";
+        if (!acc[activityName]) {
+          acc[activityName] = {
+            activity: activityName,
+            hours: 0,
+            fill: ts.activity?.color ?? freeActivity.color,
+          };
+        }
+        acc[activityName].hours += 1;
+        return acc;
+      },
+      {} as Record<string, { activity: string; hours: number; fill: string }>,
+    );
+    setChartData(Object.values(activityGroups));
+    console.log("Activity Groups:", activityGroups);
+    // const chartData = Object.values(activityGroups);
+    // console.log("Chart Data:", chartData);
+  }, [timeslots]);
+
+  // const chartData = [
+  //   { activity: "Sleep", hours: 8, fill: "var(--chart-1)" },
+  //   { activity: "Work", hours: 8, fill: "var(--chart-2)" },
+  //   { activity: "Free", hours: 4, fill: "var(--chart-3)" },
+  //   { activity: "Other", hours: 4, fill: "var(--chart-5)" },
+  // ];
 
   const chartConfig = {
-    visitors: {
-      label: "Visitors",
+    activity: {
+      label: "Activity",
     },
-    chrome: {
-      label: "Chrome",
+    Sleep: {
+      label: "Sleep",
       color: "var(--chart-1)",
     },
-    safari: {
-      label: "Safari",
+    Work: {
+      label: "Work",
       color: "var(--chart-2)",
     },
-    firefox: {
-      label: "Firefox",
+    Free: {
+      label: "Free",
       color: "var(--chart-3)",
     },
-    edge: {
-      label: "Edge",
-      color: "var(--chart-4)",
-    },
-    other: {
+    Other: {
       label: "Other",
       color: "var(--chart-5)",
     },
   } satisfies ChartConfig;
+
+  // const chartData = [
+  //   { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
+  //   { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
+  //   { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
+  //   { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
+  //   { browser: "other", visitors: 90, fill: "var(--color-other)" },
+  // ];
+
+  // const chartConfig = {
+  //   visitors: {
+  //     label: "Visitors",
+  //   },
+  //   chrome: {
+  //     label: "Chrome",
+  //     color: "var(--chart-1)",
+  //   },
+  //   safari: {
+  //     label: "Safari",
+  //     color: "var(--chart-2)",
+  //   },
+  //   firefox: {
+  //     label: "Firefox",
+  //     color: "var(--chart-3)",
+  //   },
+  //   edge: {
+  //     label: "Edge",
+  //     color: "var(--chart-4)",
+  //   },
+  //   other: {
+  //     label: "Other",
+  //     color: "var(--chart-5)",
+  //   },
+  // } satisfies ChartConfig;
 
   return (
     <Card className="flex flex-col">
@@ -381,11 +437,11 @@ const DayChart = ({ timeslots }: { timeslots: TimeslotType[] }) => {
         >
           <PieChart>
             <ChartTooltip
-              content={<ChartTooltipContent nameKey="visitors" hideLabel />}
+              content={<ChartTooltipContent nameKey="hours" hideLabel />}
             />
-            <Pie data={chartData} dataKey="visitors">
+            <Pie data={chartData} dataKey="hours">
               <LabelList
-                dataKey="browser"
+                dataKey="activity"
                 className="fill-background"
                 stroke="none"
                 fontSize={12}
