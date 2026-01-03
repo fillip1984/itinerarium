@@ -1,5 +1,5 @@
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { day, reservation } from "~/server/db/schema";
+import { day, timeslot } from "~/server/db/schema";
 
 // const daySchema = z.object({
 //   id: z.string(),
@@ -19,7 +19,16 @@ export const dayRouter = createTRPCRouter({
   //     }),
   // Read all
   getAll: publicProcedure.query(async ({ ctx }) => {
-    return ctx.db.select().from(day).orderBy(day.order);
+    return ctx.db.query.day.findMany({
+      with: {
+        timeslots: {
+          with: {
+            reservation: true,
+          },
+        },
+      },
+      orderBy: (day, { asc }) => asc(day.order),
+    });
   }),
   // Read one
   //   getById: publicProcedure
@@ -51,14 +60,34 @@ export const dayRouter = createTRPCRouter({
   //     }),
   initializeDays: publicProcedure.mutation(async ({ ctx }) => {
     const daysOfWeek = [
-      { name: "Sunday", order: 0, reservations: [{}] },
-      { name: "Monday", order: 1, reservations: [] },
-      { name: "Tuesday", order: 2, reservations: [] },
-      { name: "Wednesday", order: 3, reservations: [] },
-      { name: "Thursday", order: 4, reservations: [] },
-      { name: "Friday", order: 5, reservations: [] },
-      { name: "Saturday", order: 6, reservations: [] },
+      { name: "Sunday", order: 0 },
+      { name: "Monday", order: 1 },
+      { name: "Tuesday", order: 2 },
+      { name: "Wednesday", order: 3 },
+      { name: "Thursday", order: 4 },
+      { name: "Friday", order: 5 },
+      { name: "Saturday", order: 6 },
     ];
-    return ctx.db.insert(day).values(daysOfWeek);
+    const finalResult = await ctx.db.transaction(async (tx) => {
+      const result = await tx
+        .insert(day)
+        .values(daysOfWeek)
+        .returning({ insertedId: day.id });
+      for (const dayEntry of result) {
+        const timeslots = [];
+        for (let hour = 0; hour < 24; hour++) {
+          const startTime = `${hour.toString().padStart(2, "0")}:00:00`;
+          const endTime = `${hour.toString().padStart(2, "0")}:59:59`;
+          timeslots.push({
+            startTime,
+            endTime,
+            dayId: dayEntry.insertedId,
+          });
+        }
+        await tx.insert(timeslot).values(timeslots);
+      }
+      return result;
+    });
+    return finalResult;
   }),
 });
