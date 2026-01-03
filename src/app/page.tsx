@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import ActivitySelector from "~/components/activity-selector";
 import DayCard from "~/components/day-card";
 import { useTRPC } from "~/trpc/react";
 
@@ -37,8 +36,6 @@ export default function Home() {
           ))}
         </div>
       </div>
-
-      <ActivitySelector />
     </>
   );
 }

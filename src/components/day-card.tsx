@@ -6,7 +6,7 @@ export default function DayCard({ day }: { day: DayType }) {
   return (
     <div
       key={day.name}
-      className="flex min-w-1/3 flex-col rounded border-2 border-green-300 bg-zinc-800/80 p-4"
+      className="flex gap-2 min-w-1/3 flex-col rounded border-2 border-green-300 bg-zinc-800/80 p-4"
     >
       {/* heading */}
       <div>
@@ -27,6 +27,7 @@ export default function DayCard({ day }: { day: DayType }) {
 }
 
 const TimeslotRow = ({ timeslot }: { timeslot: TimeslotType }) => {
+  const hour = parseInt(timeslot.startTime.split(":")![0]!);
   const handleApplyActivity = () => {
     // setTimeslots((prev) =>
     //   prev.map((ts) =>
@@ -46,27 +47,21 @@ const TimeslotRow = ({ timeslot }: { timeslot: TimeslotType }) => {
       }}
       onMouseDown={handleApplyActivity}
       className={`flex grow select-none hover:opacity-85 ${
-        timeslot.startTime === "00:00:00"
-          ? "rounded-t-lg"
-          : timeslot.startTime === "23:00:00"
-            ? "rounded-b-lg"
-            : ""
+        hour === 0 ? "rounded-t-lg" : hour === 23 ? "rounded-b-lg" : ""
       }`}
       style={{
         backgroundColor: timeslot.reservation?.color ?? freeActivity.color,
       }}
     >
-      <span
-        className={`flex grow overflow-hidden ${timeslot.startTime !== "00:00:00" ? "border-t" : ""} p-1 text-ellipsis whitespace-nowrap`}
+      <div
+        className={`flex grow overflow-hidden ${hour !== 0 ? "border-t" : ""} px-2 py-0.5 text-ellipsis whitespace-nowrap`}
       >
-        {/* {timeslot.startTime === "00:00:00"
-                ? 12
-                : timeslot.startTime > "12:00:00"
-                  ? parseInt(timeslot.startTime.split(":")[0]) - 12
-                  : parseInt(timeslot.startTime.split(":")[0])}
-              {parseInt(timeslot.startTime.split(":")[0]) < 12 ? "am" : "pm"} -{" "} */}
-        {timeslot.startTime}-{timeslot.reservation?.name ?? "Free"}
-      </span>
+        <span className="text-muted-foreground text-sm w-12">
+          {hour === 0 ? 12 : hour > 12 ? hour - 12 : hour}
+          {hour < 12 ? "am" : "pm"}
+        </span>
+        <span>{timeslot.reservation?.name ?? "Free"}</span>
+      </div>
     </div>
   );
 };
