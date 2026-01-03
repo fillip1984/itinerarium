@@ -31,7 +31,7 @@ import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { freeReservation } from "~/server/api/types";
-import { useReservationStore } from "~/stores/reservationStore";
+import { useReservationStore } from "~/server/stores/reservationStore";
 import { useTRPC } from "~/trpc/react";
 
 export default function ReservationSelector() {

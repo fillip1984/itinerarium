@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { DayType, TimeslotType } from "~/server/api/types";
 import { freeReservation } from "~/server/api/types";
-import { useReservationStore } from "~/stores/reservationStore";
+import { useReservationStore } from "~/server/stores/reservationStore";
 import { useTRPC } from "~/trpc/react";
 import DayChart from "./day-chart";
 
@@ -36,7 +36,7 @@ const TimeslotRow = ({ timeslot }: { timeslot: TimeslotType }) => {
 
   const queryClient = useQueryClient();
   const trpc = useTRPC();
-  const mut = useMutation(
+  const changeReservation = useMutation(
     trpc.day.reserveTimeslot.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(
@@ -46,18 +46,10 @@ const TimeslotRow = ({ timeslot }: { timeslot: TimeslotType }) => {
     }),
   );
   const handleApplyActivity = () => {
-    console.log("Apply reservation:", selectedReservationId);
-    mut.mutate({
+    changeReservation.mutate({
       timeslotId: timeslot.id,
       reservationId: selectedReservationId,
     });
-    // setTimeslots((prev) =>
-    //   prev.map((ts) =>
-    //     ts.hour === hour
-    //       ? { ...ts, activity: ts.activity ? undefined : selectedActivity }
-    //       : ts,
-    //   ),
-    // );
   };
 
   return (

@@ -22,8 +22,6 @@ export default function Home() {
   useEffect(() => {
     if (!isLoading && days?.length === 0) {
       initDays.mutate();
-    } else {
-      console.log("Days exist, no init needed");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading]);
