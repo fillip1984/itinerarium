@@ -1,5 +1,9 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import type { DayType, TimeslotType } from "~/server/api/types";
-import { freeActivity } from "~/server/api/types";
+import { freeReservation } from "~/server/api/types";
+import { useReservationStore } from "~/stores/reservationStore";
+import { useTRPC } from "~/trpc/react";
 import DayChart from "./day-chart";
 
 export default function DayCard({ day }: { day: DayType }) {
@@ -28,7 +32,25 @@ export default function DayCard({ day }: { day: DayType }) {
 
 const TimeslotRow = ({ timeslot }: { timeslot: TimeslotType }) => {
   const hour = parseInt(timeslot.startTime.split(":")![0]!);
+  const { selectedReservationId } = useReservationStore();
+
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+  const mut = useMutation(
+    trpc.day.reserveTimeslot.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          void queryClient.invalidateQueries(trpc.day.pathFilter()),
+        );
+      },
+    }),
+  );
   const handleApplyActivity = () => {
+    console.log("Apply reservation:", selectedReservationId);
+    mut.mutate({
+      timeslotId: timeslot.id,
+      reservationId: selectedReservationId,
+    });
     // setTimeslots((prev) =>
     //   prev.map((ts) =>
     //     ts.hour === hour
@@ -50,7 +72,7 @@ const TimeslotRow = ({ timeslot }: { timeslot: TimeslotType }) => {
         hour === 0 ? "rounded-t-lg" : hour === 23 ? "rounded-b-lg" : ""
       }`}
       style={{
-        backgroundColor: timeslot.reservation?.color ?? freeActivity.color,
+        backgroundColor: timeslot.reservation?.color ?? freeReservation.color,
       }}
     >
       <div

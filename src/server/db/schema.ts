@@ -16,6 +16,7 @@ export const timeslot = appSchema.table("timeslot", (d) => ({
     .text()
     .references(() => day.id, { onDelete: "cascade" })
     .notNull(),
+  reservationId: d.text().references(() => reservation.id),
 }));
 
 export const reservation = appSchema.table("reservation", (d) => ({
@@ -23,10 +24,6 @@ export const reservation = appSchema.table("reservation", (d) => ({
   name: d.text().notNull(),
   description: d.text(),
   color: d.varchar({ length: 7 }).notNull(),
-  timeslotId: d
-    .text()
-    .references(() => timeslot.id, { onDelete: "cascade" })
-    .notNull(),
 }));
 
 // Relationships
@@ -39,13 +36,9 @@ export const timeslotRelationships = relations(timeslot, ({ one }) => ({
     fields: [timeslot.dayId],
     references: [day.id],
   }),
-  reservation: one(reservation),
-}));
-
-export const reservationRelationships = relations(reservation, ({ one }) => ({
-  timeslot: one(timeslot, {
-    fields: [reservation.timeslotId],
-    references: [timeslot.id],
+  reservation: one(reservation, {
+    fields: [timeslot.reservationId],
+    references: [reservation.id],
   }),
 }));
 

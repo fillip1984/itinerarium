@@ -10,14 +10,15 @@ export default function Home() {
   const queryClient = useQueryClient();
   const trpc = useTRPC();
   const { data: days, isLoading } = useQuery(trpc.day.getAll.queryOptions());
+
+  // init db
   const initDays = useMutation(
-    trpc.day.initializeDays.mutationOptions({
+    trpc.day.initialize.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.day.pathFilter());
       },
     }),
   );
-
   useEffect(() => {
     if (!isLoading && days?.length === 0) {
       initDays.mutate();

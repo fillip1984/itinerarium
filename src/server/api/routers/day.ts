@@ -1,27 +1,15 @@
+import { eq } from "drizzle-orm";
+import z from "zod/v4";
+
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { day, timeslot } from "~/server/db/schema";
 
-// const daySchema = z.object({
-//   id: z.string(),
-//   name: z.string().min(1),
-//   order: z.number().int().min(1).max(7),
-// });
-
 export const dayRouter = createTRPCRouter({
-  // Create
-  //   create: publicProcedure
-  //     .input(daySchema.omit({ id: true }))
-  //     .mutation(async ({ ctx, input }) => {
-  //       return ctx.db.insert(day).values({
-  //         name: input.name,
-  //         order: input.order,
-  //       });
-  //     }),
-  // Read all
   getAll: publicProcedure.query(async ({ ctx }) => {
     return ctx.db.query.day.findMany({
       with: {
         timeslots: {
+          orderBy: (timeslot, { asc }) => asc(timeslot.startTime),
           with: {
             reservation: true,
           },
@@ -40,25 +28,23 @@ export const dayRouter = createTRPCRouter({
   //         .where(eq(day.id, input.id));
   //       return result[0];
   //     }),
-  // Update
-  //   update: publicProcedure
-  //     .input(daySchema.required({ id: true }))
-  //     .mutation(async ({ ctx, input }) => {
-  //       return ctx.db
-  //         .update(day)
-  //         .set({
-  //           name: input.name,
-  //           order: input.order,
-  //         })
-  //         .where(eq(day.id, input.id));
-  //     }),
-  // Delete
-  //   delete: publicProcedure
-  //     .input(z.object({ id: z.string() }))
-  //     .mutation(async ({ ctx, input }) => {
-  //       return ctx.db.delete(day).where(eq(day.id, input.id));
-  //     }),
-  initializeDays: publicProcedure.mutation(async ({ ctx }) => {
+  reserveTimeslot: publicProcedure
+    .input(
+      z.object({
+        timeslotId: z.string(),
+        reservationId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(timeslot)
+        .set({
+          reservationId:
+            input.reservationId === "" ? null : input.reservationId,
+        })
+        .where(eq(timeslot.id, input.timeslotId));
+    }),
+  initialize: publicProcedure.mutation(async ({ ctx }) => {
     const daysOfWeek = [
       { name: "Sunday", order: 0 },
       { name: "Monday", order: 1 },

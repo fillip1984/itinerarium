@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Label } from "@radix-ui/react-label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BsPalette } from "react-icons/bs";
 
-import type { ActivityType } from "~/server/api/types";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -30,14 +30,39 @@ import {
 import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { activities, freeActivity } from "~/server/api/types";
+import { freeReservation } from "~/server/api/types";
+import { useReservationStore } from "~/stores/reservationStore";
+import { useTRPC } from "~/trpc/react";
 
-export default function ActivitySelector() {
+export default function ReservationSelector() {
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+  const { data: reservations, isLoading } = useQuery(
+    trpc.reservation.getAll.queryOptions(),
+  );
+
+  // init db
+  const initReservations = useMutation(
+    trpc.reservation.initialize.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          void queryClient.invalidateQueries(trpc.reservation.pathFilter()),
+        );
+      },
+    }),
+  );
+  useEffect(() => {
+    if (!isLoading && reservations?.length === 0) {
+      initReservations.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
+
+  // state for selected reservation
+  const { selectedReservationId, setSelectedReservationId } =
+    useReservationStore();
+
   const [showNewDialog, setShowNewDialog] = useState(false);
-  const [selectedActivity, setSelectedActivity] = useState<ActivityType>({
-    name: "Free",
-    color: "#5c5b5a",
-  });
 
   return (
     <>
@@ -45,36 +70,34 @@ export default function ActivitySelector() {
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon">
             <BsPalette className="" />
-            <span className="sr-only">Select Activity</span>
+            <span className="sr-only">Select Reservation</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Activity Type</DropdownMenuLabel>
+          <DropdownMenuLabel>Reservation Type</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuRadioGroup
-            value={selectedActivity.name}
+            value={selectedReservationId}
             onValueChange={(value) => {
-              const act = activities.find(
-                (activity) => activity.name === value,
-              );
-              setSelectedActivity(act!);
+              const res =
+                reservations?.find((reservation) => reservation.id === value)
+                  ?.id ?? "";
+              setSelectedReservationId(res);
             }}
           >
             <DropdownMenuRadioItem
-              key="Free"
-              value="Free"
-              onClick={() => setSelectedActivity(freeActivity)}
+              value=""
+              onClick={() => setSelectedReservationId(freeReservation.id)}
             >
               Free
             </DropdownMenuRadioItem>
             <DropdownMenuSeparator />
-            {activities.map((activity) => (
+            {reservations?.map((reservation) => (
               <DropdownMenuRadioItem
-                key={activity.name}
-                value={activity.name}
-                onClick={() => setSelectedActivity(activity)}
+                key={reservation.id}
+                value={reservation.id}
               >
-                {activity.name}
+                {reservation.name}
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>
