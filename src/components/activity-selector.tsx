@@ -5,8 +5,7 @@ import { Label } from "@radix-ui/react-label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { BsPalette } from "react-icons/bs";
 
-import type { ActivityType } from "~/app/page";
-import { activities, freeActivity } from "~/app/page";
+import type { ActivityType } from "~/server/api/types";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -31,15 +30,14 @@ import {
 import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+import { activities, freeActivity } from "~/server/api/types";
 
-export default function ActivitySelector({
-  selectedActivity,
-  setSelectedActivity,
-}: {
-  selectedActivity: ActivityType;
-  setSelectedActivity: React.Dispatch<React.SetStateAction<ActivityType>>;
-}) {
+export default function ActivitySelector() {
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<ActivityType>({
+    name: "Free",
+    color: "#5c5b5a",
+  });
 
   return (
     <>
