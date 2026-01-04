@@ -1,6 +1,6 @@
 "use client";
 
-import ReservationSelector from "./reservation-selector";
+import ReservationSelector from "./reservation/reservation-selector";
 import { ModeToggle } from "./theme-toggle";
 
 export default function floating() {
