@@ -1,16 +1,26 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, ArrowRight, Trash } from "lucide-react";
 import { FaListCheck } from "react-icons/fa6";
 
-import type { ReservationType } from "~/server/api/types";
+import type {
+  ListItemType,
+  ListType,
+  ReservationType,
+} from "~/server/api/types";
 import { Button } from "~/components/ui/button";
 import { useTRPC } from "~/trpc/react";
 import ColorPickerDropdown from "../color-selector";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "../ui/input-group";
 import { Textarea } from "../ui/textarea";
 
 export default function ReservationDetails({
@@ -141,13 +151,194 @@ export default function ReservationDetails({
         </p>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <FaListCheck />
-          <h4>Lists</h4>
-        </div>
-        <Badge>{reservationToManage.lists.length}</Badge>
-      </div>
+      <ListSection reservation={reservationToManage} />
     </div>
   );
 }
+
+const ListSection = ({ reservation }: { reservation: ReservationType }) => {
+  const [newListName, setNewListName] = useState("");
+
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+  const { data: lists } = useQuery(trpc.list.getAll.queryOptions());
+
+  const { mutateAsync: createList } = useMutation(
+    trpc.list.create.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          void queryClient.invalidateQueries(trpc.reservation.pathFilter()),
+        );
+        setNewListName("");
+      },
+    }),
+  );
+  const handleAddNewList = async () => {
+    await createList({ name: newListName, reservationId: reservation.id });
+  };
+
+  const [selectedList, setSelectedList] = useState<ListType | null>(null);
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* show all existing lists or selected list */}
+      {selectedList ? (
+        <ListDetails
+          list={selectedList}
+          dismiss={() => setSelectedList(null)}
+        />
+      ) : (
+        <>
+          {/* heading */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <FaListCheck />
+              <h4>Lists</h4>
+            </div>
+            <Badge>{reservation.lists.length}</Badge>
+          </div>
+          {lists?.map((list) => (
+            <div
+              key={list.id}
+              onClick={() => setSelectedList(list)}
+              className="p-2 border rounded hover:border-white hover:bg-white/10 transition-colors cursor-pointer flex justify-between items-center"
+            >
+              {list.name} <ArrowRight />
+            </div>
+          ))}
+          {/* add list */}
+          <InputGroup>
+            <InputGroupInput
+              placeholder="New list..."
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+            />
+            <InputGroupAddon align={"inline-end"}>
+              <InputGroupButton
+                onClick={handleAddNewList}
+                disabled={!newListName.trim()}
+              >
+                Add
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+        </>
+      )}
+    </div>
+  );
+};
+
+const ListDetails = ({
+  list,
+  dismiss,
+}: {
+  list: ListType;
+  dismiss: () => void;
+}) => {
+  const [newItem, setNewItem] = useState("");
+
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+
+  // add item
+  const { mutateAsync: createItem } = useMutation(
+    trpc.list.addItem.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          void queryClient.invalidateQueries(trpc.reservation.pathFilter()),
+        );
+        setNewItem("");
+      },
+    }),
+  );
+  const handleAddNewItem = async () => {
+    await createItem({ listId: list.id, itemName: newItem });
+  };
+
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <Button onClick={dismiss}>
+          <ArrowLeft />
+        </Button>
+        <h4>{list.name}</h4>
+      </div>
+
+      {/* display items */}
+      {list.items.map((item) => (
+        <ListItemRow key={item.id} item={item} />
+      ))}
+
+      {/* add item */}
+      <InputGroup>
+        <InputGroupInput
+          placeholder="New item..."
+          value={newItem}
+          onChange={(e) => setNewItem(e.target.value)}
+        />
+        <InputGroupAddon align={"inline-end"}>
+          <InputGroupButton
+            onClick={handleAddNewItem}
+            disabled={!newItem.trim()}
+          >
+            Add
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
+    </>
+  );
+};
+
+const ListItemRow = ({ item }: { item: ListItemType }) => {
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+
+  // complete item
+  const { mutateAsync: completeItem } = useMutation(
+    trpc.list.completeItem.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          void queryClient.invalidateQueries(trpc.reservation.pathFilter()),
+        );
+      },
+    }),
+  );
+  const toggleItemCompletion = async () => {
+    await completeItem({ itemId: item.id, complete: !item.complete });
+  };
+
+  // remove item
+  const { mutateAsync: removeItem } = useMutation(
+    trpc.list.removeItem.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          void queryClient.invalidateQueries(trpc.reservation.pathFilter()),
+        );
+      },
+    }),
+  );
+  const handleRemoveItem = async () => {
+    await removeItem({ itemId: item.id });
+  };
+  return (
+    <div className="flex gap-2 items-center p-2 hover:bg-white/10 transition-colors">
+      <input
+        type="checkbox"
+        checked={item.complete}
+        onChange={toggleItemCompletion}
+      />
+      <span
+        className={item.complete ? "line-through text-muted-foreground" : ""}
+      >
+        {item.name}
+      </span>
+      <Button
+        variant={"destructive"}
+        onClick={handleRemoveItem}
+        className="ml-auto"
+      >
+        <Trash />
+      </Button>
+    </div>
+  );
+};

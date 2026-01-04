@@ -40,7 +40,7 @@ export const listItem = appSchema.table("listItem", (d) => ({
   ...baseFields,
   name: d.text().notNull(),
   description: d.text(),
-  isCompleted: d.boolean().notNull().default(false),
+  complete: d.boolean().notNull().default(false),
   listId: d
     .text()
     .references(() => list.id, { onDelete: "cascade" })

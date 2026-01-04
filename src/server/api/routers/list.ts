@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import z from "zod/v4";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { list } from "~/server/db/schema";
+import { list, listItem } from "~/server/db/schema";
 
 export const listRouter = createTRPCRouter({
   // Create
@@ -27,6 +27,9 @@ export const listRouter = createTRPCRouter({
       columns: {
         createdAt: false,
         updatedAt: false,
+      },
+      with: {
+        items: true,
       },
       orderBy: (list, { asc }) => asc(list.name),
     });
@@ -64,5 +67,40 @@ export const listRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.delete(list).where(eq(list.id, input.id));
+    }),
+  addItem: publicProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+        itemName: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.insert(listItem).values({
+        listId: input.listId,
+        name: input.itemName,
+      });
+    }),
+  removeItem: publicProcedure
+    .input(
+      z.object({
+        itemId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.delete(listItem).where(eq(listItem.id, input.itemId));
+    }),
+  completeItem: publicProcedure
+    .input(
+      z.object({
+        itemId: z.string(),
+        complete: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db
+        .update(listItem)
+        .set({ complete: input.complete })
+        .where(eq(listItem.id, input.itemId));
     }),
 });
