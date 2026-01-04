@@ -48,7 +48,7 @@ const ReservationCard = ({
       onClick={() =>
         setReservationToManage && setReservationToManage(reservation)
       }
-      className="p-2 border rounded hover:border-white"
+      className="p-2 border rounded hover:border-white cursor-pointer"
     >
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">{reservation.name}</h3>

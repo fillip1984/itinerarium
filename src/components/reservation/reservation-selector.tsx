@@ -131,6 +131,14 @@ const ManageReservationsDialog = ({
   const [reservationToManage, setReservationToManage] =
     useState<ReservationType | null>(null);
 
+  // ux: reset to list view when opening dialog
+  useEffect(() => {
+    if (showManageDialog) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setReservationToManage(null);
+    }
+  }, [showManageDialog]);
+
   return (
     <Dialog open={showManageDialog} onOpenChange={setShowManageDialog}>
       <DialogContent
@@ -141,7 +149,7 @@ const ManageReservationsDialog = ({
           <DialogTitle>Manage Reservations</DialogTitle>
           <DialogDescription>
             <ul className="list-disc ml-6 ">
-              <li>Reservations reserve timeslots during a day. </li>
+              <li>Reservations reserve timeslots during a day.</li>
               <li>
                 Lists suggest activities to perform during those reservations.
               </li>
