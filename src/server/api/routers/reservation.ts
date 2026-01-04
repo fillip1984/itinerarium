@@ -35,6 +35,7 @@ export const reservationRouter = createTRPCRouter({
             startTime: true,
           },
         },
+        lists: true,
       },
       orderBy: (reservation, { asc }) => asc(reservation.name),
     });

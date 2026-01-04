@@ -10,4 +10,5 @@ export const freeReservation: ReservationType = {
   description: "No reservation",
   color: "#5c5b5a",
   timeslots: [],
+  lists: [],
 };

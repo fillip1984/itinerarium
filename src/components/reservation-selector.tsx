@@ -33,6 +33,7 @@ import {
 import { freeReservation } from "~/server/api/types";
 import { useReservationStore } from "~/server/stores/reservationStore";
 import { useTRPC } from "~/trpc/react";
+import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 
@@ -64,7 +65,7 @@ export default function ReservationSelector() {
   const { selectedReservationId, setSelectedReservationId } =
     useReservationStore();
 
-  const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showManageDialog, setShowManageDialog] = useState(false);
 
   return (
     <>
@@ -105,27 +106,27 @@ export default function ReservationSelector() {
           </DropdownMenuRadioGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem onSelect={() => setShowNewDialog(true)}>
+            <DropdownMenuItem onSelect={() => setShowManageDialog(true)}>
               Manage Reservations
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ManageReservations
-        showNewDialog={showNewDialog}
-        setShowNewDialog={setShowNewDialog}
+      <ManageReservationsDialog
+        showManageDialog={showManageDialog}
+        setShowManageDialog={setShowManageDialog}
       />
     </>
   );
 }
 
-const ManageReservations = ({
-  showNewDialog,
-  setShowNewDialog,
+const ManageReservationsDialog = ({
+  showManageDialog,
+  setShowManageDialog,
 }: {
-  showNewDialog: boolean;
-  setShowNewDialog: (open: boolean) => void;
+  showManageDialog: boolean;
+  setShowManageDialog: (open: boolean) => void;
 }) => {
   const trpc = useTRPC();
   const { data: reservations } = useQuery(
@@ -135,7 +136,7 @@ const ManageReservations = ({
     useState<ReservationType | null>(null);
 
   return (
-    <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+    <Dialog open={showManageDialog} onOpenChange={setShowManageDialog}>
       <DialogContent
         className="sm:max-w-106.25 h-130"
         onInteractOutside={(e) => e.preventDefault()}
@@ -258,10 +259,15 @@ const ReservationCard = ({
       </div>
 
       <div className="flex flex-col pl-1 gap-1">
-        <FaListCheck />
+        <div className="flex gap-1 items-center">
+          <FaListCheck />
+          <span className="font-bold">{reservation.lists?.length ?? 0}</span>
+        </div>
         <div className="flex gap-1 items-center">
           <MdTimelapse />
-          <span className="font-bold">{reservation.timeslots.length}</span>
+          <span className="font-bold">
+            {reservation.timeslots?.length ?? 0}
+          </span>
           <span className="text-muted-foreground">hours/week</span>
         </div>
       </div>
@@ -280,6 +286,7 @@ const ReservationDetails = ({
   const [description, setDescription] = useState(
     reservationToManage.description ?? "Enter a description...",
   );
+  const [color, setColor] = useState(reservationToManage.color);
 
   const [isEditingName, setIsEditingName] = useState(false);
   const nameFieldRef = useRef<HTMLInputElement>(null);
@@ -325,40 +332,60 @@ const ReservationDetails = ({
       id: reservationToManage.id,
       name,
       description: description === "Enter a description..." ? "" : description,
-      color: reservationToManage.color,
+      color,
     });
   };
   useEffect(() => {
-    if (!isEditingName && !isEditingDescription) {
+    if (
+      !isEditingName &&
+      !isEditingDescription &&
+      (name !== reservationToManage.name ||
+        (description !== "Enter a description..." &&
+          description !== reservationToManage.description))
+    ) {
+      console.log(
+        "Updating reservation details due to name or description...",
+        { name, description },
+      );
+      handleUpdatesToReservationDetails();
+    } else if (color && color !== reservationToManage.color) {
+      console.log("Updating reservation details due to color...");
       handleUpdatesToReservationDetails();
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditingName, isEditingDescription]);
+  }, [isEditingName, isEditingDescription, color, reservationToManage.color]);
 
   return (
     <div className="h-80 overflow-y-auto gap-2 flex flex-col pr-2">
-      <div className="flex items-center gap-2">
-        <Button
-          variant={"outline"}
-          onClick={() => setReservationToManage(null)}
-        >
-          <ArrowLeft />
-        </Button>
-        {isEditingName ? (
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={() => setIsEditingName(false)}
-            ref={nameFieldRef}
-          />
-        ) : (
-          <h3
-            className="hover:bg-white/10 rounded transition-colors"
-            onClick={() => setIsEditingName(true)}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <Button
+            variant={"outline"}
+            onClick={() => setReservationToManage(null)}
           >
-            {name}
-          </h3>
-        )}
+            <ArrowLeft />
+          </Button>
+          {isEditingName ? (
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={() => setIsEditingName(false)}
+              ref={nameFieldRef}
+            />
+          ) : (
+            <h3
+              className="hover:bg-white/10 rounded transition-colors"
+              onClick={() => setIsEditingName(true)}
+            >
+              {name}
+            </h3>
+          )}
+        </div>
+        <ColorPickerDropdown
+          currentColor={color}
+          updateColor={(newColor) => setColor(newColor)}
+        />
       </div>
       {isEditingDescription ? (
         <Textarea
@@ -375,6 +402,63 @@ const ReservationDetails = ({
           {description}
         </p>
       )}
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <FaListCheck />
+          <h4>Lists</h4>
+        </div>
+        <Badge>{reservationToManage.lists.length}</Badge>
+      </div>
     </div>
+  );
+};
+
+const ColorPickerDropdown = ({
+  currentColor,
+  updateColor,
+}: {
+  currentColor: string;
+  updateColor: (color: string) => void;
+}) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon"
+          style={{ backgroundColor: currentColor }}
+        >
+          <span className="sr-only">Select Color</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Color</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <div className="grid grid-cols-5 gap-2 p-2">
+          {[
+            "#f87171",
+            "#fbbf24",
+            "#34d399",
+            "#60a5fa",
+            "#a78bfa",
+            "#f472b6",
+            "#f97316",
+            "#eab308",
+            "#10b981",
+            "#3b82f6",
+            "#8b5cf6",
+            "#ec4899",
+          ].map((color) => (
+            <DropdownMenuItem
+              key={color}
+              onClick={() => updateColor(color)}
+              className="h-8 w-8 rounded"
+              style={{ backgroundColor: color }}
+            ></DropdownMenuItem>
+          ))}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
