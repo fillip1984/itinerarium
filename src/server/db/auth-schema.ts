@@ -1,66 +1,67 @@
 import { relations } from "drizzle-orm";
-import { appSchema } from "./db-utils";
-import { boolean, text, timestamp } from "drizzle-orm/pg-core";
 
-export const user = appSchema.table("user", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified")
+import { appSchema } from "./db-utils";
+
+export const user = appSchema.table("user", (d) => ({
+  id: d.text().primaryKey(),
+  name: d.text().notNull(),
+  email: d.text().notNull().unique(),
+  emailVerified: d
+    .boolean()
     .$defaultFn(() => false)
     .notNull(),
-  image: text("image"),
-  createdAt: timestamp("created_at")
+  image: d.text(),
+  createdAt: d
+    .timestamp()
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
-  updatedAt: timestamp("updated_at")
+  updatedAt: d
+    .timestamp()
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
-});
+}));
 
-export const session = appSchema.table("session", {
-  id: text("id").primaryKey(),
-  expiresAt: timestamp("expires_at").notNull(),
-  token: text("token").notNull().unique(),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  userId: text("user_id")
+export const session = appSchema.table("session", (d) => ({
+  id: d.text().primaryKey(),
+  expiresAt: d.timestamp().notNull(),
+  token: d.text().notNull().unique(),
+  createdAt: d.timestamp().notNull(),
+  updatedAt: d.timestamp().notNull(),
+  ipAddress: d.text(),
+  userAgent: d.text(),
+  userId: d
+    .text()
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-});
+}));
 
-export const account = appSchema.table("account", {
-  id: text("id").primaryKey(),
-  accountId: text("account_id").notNull(),
-  providerId: text("provider_id").notNull(),
-  userId: text("user_id")
+export const account = appSchema.table("account", (d) => ({
+  id: d.text().primaryKey(),
+  accountId: d.text().notNull(),
+  providerId: d.text().notNull(),
+  userId: d
+    .text()
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  accessToken: text("access_token"),
-  refreshToken: text("refresh_token"),
-  idToken: text("id_token"),
-  accessTokenExpiresAt: timestamp("access_token_expires_at"),
-  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-  scope: text("scope"),
-  password: text("password"),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-});
+  accessToken: d.text(),
+  refreshToken: d.text(),
+  idToken: d.text(),
+  accessTokenExpiresAt: d.timestamp(),
+  refreshTokenExpiresAt: d.timestamp(),
+  scope: d.text(),
+  password: d.text(),
+  createdAt: d.timestamp().notNull(),
+  updatedAt: d.timestamp().notNull(),
+}));
 
-export const verification = appSchema.table("verification", {
-  id: text("id").primaryKey(),
-  identifier: text("identifier").notNull(),
-  value: text("value").notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").$defaultFn(
-    () => /* @__PURE__ */ new Date(),
-  ),
-  updatedAt: timestamp("updated_at").$defaultFn(
-    () => /* @__PURE__ */ new Date(),
-  ),
-});
+export const verification = appSchema.table("verification", (d) => ({
+  id: d.text().primaryKey(),
+  identifier: d.text().notNull(),
+  value: d.text().notNull(),
+  expiresAt: d.timestamp().notNull(),
+  createdAt: d.timestamp().$defaultFn(() => /* @__PURE__ */ new Date()),
+  updatedAt: d.timestamp().$defaultFn(() => /* @__PURE__ */ new Date()),
+}));
 
 export const userRelations = relations(user, ({ many }) => ({
   account: many(account),

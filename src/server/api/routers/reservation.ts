@@ -28,19 +28,28 @@ export const reservationRouter = createTRPCRouter({
         createdAt: false,
         updatedAt: false,
       },
+      // TODO: wait and see if count is fixed in drizzle 1.0
+      with: {
+        timeslots: {
+          columns: {
+            startTime: true,
+          },
+        },
+      },
       orderBy: (reservation, { asc }) => asc(reservation.name),
     });
   }),
   // Read one
-  // getById: publicProcedure
-  //   .input(z.object({ id: z.string() }))
-  //   .query(async ({ ctx, input }) => {
-  //     const result = await ctx.db
-  //       .select()
-  //       .from(reservation)
-  //       .where(eq(reservation.id, input.id));
-  //     return result[0];
-  //   }),
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return await ctx.db.query.reservation.findFirst({
+        where: eq(reservation.id, input.id),
+        with: {
+          lists: true,
+        },
+      });
+    }),
   // Update
   update: publicProcedure
     .input(

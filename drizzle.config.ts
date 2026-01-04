@@ -11,4 +11,5 @@ export default {
   },
   // tablesFilter: ["itinerarium_*"],
   schemaFilter: [env.DATABASE_SCHEMA],
+  casing: "camelCase",
 } satisfies Config;
