@@ -1,17 +1,16 @@
 "use client";
 
-import { FaListCheck } from "react-icons/fa6";
 import { MdTimelapse } from "react-icons/md";
 
-import type { ReservationType } from "~/server/api/types";
+import type { ReservationSummaryType } from "~/server/api/types";
 import { freeReservation } from "~/server/api/types";
 
 export default function ReservationList({
   reservations,
   setReservationToManage,
 }: {
-  reservations: ReservationType[];
-  setReservationToManage: (reservation: ReservationType | null) => void;
+  reservations: ReservationSummaryType[];
+  setReservationToManage: (reservation: ReservationSummaryType | null) => void;
 }) {
   return (
     <div className="h-80 overflow-y-auto gap-2 flex flex-col pr-2 pb-12">
@@ -40,8 +39,8 @@ const ReservationCard = ({
   reservation,
   setReservationToManage,
 }: {
-  reservation: ReservationType;
-  setReservationToManage?: (reservation: ReservationType | null) => void;
+  reservation: ReservationSummaryType;
+  setReservationToManage?: (reservation: ReservationSummaryType | null) => void;
 }) => {
   return (
     <div
@@ -61,10 +60,10 @@ const ReservationCard = ({
       </div>
 
       <div className="flex flex-col pl-1 gap-1">
-        <div className="flex gap-1 items-center">
+        {/* <div className="flex gap-1 items-center">
           <FaListCheck />
           <span className="font-bold">{reservation.lists?.length ?? 0}</span>
-        </div>
+        </div> */}
         <div className="flex gap-1 items-center">
           <MdTimelapse />
           <span className="font-bold">
@@ -77,7 +76,7 @@ const ReservationCard = ({
   );
 };
 
-const calcFreeHoursPerWeek = (reservations: ReservationType[]) => {
+const calcFreeHoursPerWeek = (reservations: ReservationSummaryType[]) => {
   const totalHours = 24 * 7;
   const reservedHours = reservations.reduce(
     (acc, reservation) => acc + reservation.timeslots.length,

@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import { BsPalette } from "react-icons/bs";
 
-import type { ReservationType } from "~/server/api/types";
+import type { ReservationSummaryType } from "~/server/api/types";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -129,7 +129,7 @@ const ManageReservationsDialog = ({
     trpc.reservation.getAll.queryOptions(),
   );
   const [reservationToManage, setReservationToManage] =
-    useState<ReservationType | null>(null);
+    useState<ReservationSummaryType | null>(null);
 
   // ux: reset to list view when opening dialog
   useEffect(() => {
@@ -181,8 +181,8 @@ const ManageReservationsDialog = ({
                 transition={{ duration: 0.3 }}
               >
                 <ReservationDetails
-                  reservationToManage={reservationToManage}
-                  setReservationToManage={setReservationToManage}
+                  reservationId={reservationToManage.id}
+                  dismiss={() => setReservationToManage(null)}
                 />
               </motion.div>
             )}

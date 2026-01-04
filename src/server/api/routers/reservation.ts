@@ -28,14 +28,13 @@ export const reservationRouter = createTRPCRouter({
         createdAt: false,
         updatedAt: false,
       },
-      // TODO: wait and see if count is fixed in drizzle 1.0
       with: {
+        // TODO: wait and see if count is fixed in drizzle 1.0, was trying to count how many hours
         timeslots: {
           columns: {
             startTime: true,
           },
         },
-        lists: true,
       },
       orderBy: (reservation, { asc }) => asc(reservation.name),
     });
@@ -46,6 +45,10 @@ export const reservationRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       return await ctx.db.query.reservation.findFirst({
         where: eq(reservation.id, input.id),
+        columns: {
+          createdAt: false,
+          updatedAt: false,
+        },
         with: {
           lists: true,
         },

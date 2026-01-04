@@ -2,15 +2,18 @@ import type { RouterOutputs } from "~/trpc/react";
 
 export type DayType = RouterOutputs["day"]["getAll"][number];
 export type TimeslotType = DayType["timeslots"][number];
-export type ReservationType = RouterOutputs["reservation"]["getAll"][number];
+export type ReservationSummaryType =
+  RouterOutputs["reservation"]["getAll"][number];
+export type ReservationDetailType = NonNullable<
+  RouterOutputs["reservation"]["getById"]
+>;
 export type ListType = RouterOutputs["list"]["getAll"][number];
 export type ListItemType = ListType["items"][number];
 
-export const freeReservation: ReservationType = {
+export const freeReservation: ReservationSummaryType = {
   id: "",
   name: "Free",
   description: "No reservation",
   color: "#5c5b5a",
   timeslots: [],
-  lists: [],
 };

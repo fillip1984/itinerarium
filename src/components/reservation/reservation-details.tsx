@@ -8,7 +8,7 @@ import { FaListCheck } from "react-icons/fa6";
 import type {
   ListItemType,
   ListType,
-  ReservationType,
+  ReservationDetailType,
 } from "~/server/api/types";
 import { Button } from "~/components/ui/button";
 import { useTRPC } from "~/trpc/react";
@@ -24,17 +24,35 @@ import {
 import { Textarea } from "../ui/textarea";
 
 export default function ReservationDetails({
-  reservationToManage,
-  setReservationToManage,
+  reservationId,
+  dismiss,
 }: {
-  reservationToManage: ReservationType;
-  setReservationToManage: (reservation: ReservationType | null) => void;
+  reservationId: string;
+  dismiss: () => void;
 }) {
-  const [name, setName] = useState(reservationToManage.name);
-  const [description, setDescription] = useState(
-    reservationToManage.description ?? "Enter a description...",
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+
+  // fetch data
+  const { data: reservation } = useQuery(
+    trpc.reservation.getById.queryOptions(
+      { id: reservationId },
+      { enabled: !!reservationId },
+    ),
   );
-  const [color, setColor] = useState(reservationToManage.color);
+
+  // form state
+  const [reservationToManage, setReservationToManage] =
+    useState<ReservationDetailType | null>(null);
+  useEffect(() => {
+    if (reservation) {
+      setReservationToManage(reservation);
+    }
+  }, [reservation]);
+
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("Enter a description...");
+  const [color, setColor] = useState("#ffffff");
 
   const [isEditingName, setIsEditingName] = useState(false);
   const nameFieldRef = useRef<HTMLInputElement>(null);
@@ -64,8 +82,8 @@ export default function ReservationDetails({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditingDescription]);
 
-  const queryClient = useQueryClient();
-  const trpc = useTRPC();
+  // mutations
+
   const updateReservation = useMutation(
     trpc.reservation.update.mutationOptions({
       onSuccess: () => {
@@ -76,6 +94,8 @@ export default function ReservationDetails({
     }),
   );
   const handleUpdatesToReservationDetails = () => {
+    if (!reservationToManage) return;
+
     updateReservation.mutate({
       id: reservationToManage.id,
       name,
@@ -84,6 +104,7 @@ export default function ReservationDetails({
     });
   };
   useEffect(() => {
+    if (!reservationToManage) return;
     if (
       !isEditingName &&
       !isEditingDescription &&
@@ -102,16 +123,17 @@ export default function ReservationDetails({
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditingName, isEditingDescription, color, reservationToManage.color]);
+  }, [isEditingName, isEditingDescription, color, reservationToManage?.color]);
+
+  if (!reservationToManage) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="h-80 overflow-y-auto gap-2 flex flex-col pr-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
-          <Button
-            variant={"outline"}
-            onClick={() => setReservationToManage(null)}
-          >
+          <Button variant={"outline"} onClick={dismiss}>
             <ArrowLeft />
           </Button>
           {isEditingName ? (
@@ -156,7 +178,11 @@ export default function ReservationDetails({
   );
 }
 
-const ListSection = ({ reservation }: { reservation: ReservationType }) => {
+const ListSection = ({
+  reservation,
+}: {
+  reservation: ReservationDetailType;
+}) => {
   const [newListName, setNewListName] = useState("");
 
   const queryClient = useQueryClient();
